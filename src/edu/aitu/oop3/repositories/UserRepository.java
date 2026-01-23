@@ -11,7 +11,6 @@ public class UserRepository implements IUserRepository {
     @Override
     public boolean create(User user) {
         String sql = "INSERT INTO users (name, email, role) VALUES (?, ?, ?)";
-        // try-with-resources для автоматического закрытия соединения и стейтмента [cite: 19]
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
             st.setString(1, user.getName());
