@@ -6,4 +6,5 @@ import java.util.List;
 public interface IUserRepository {
     boolean create(User user);
     List<User> findAll();
+    User findById(int id);
 }
