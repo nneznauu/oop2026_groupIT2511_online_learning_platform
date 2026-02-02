@@ -1,10 +1,10 @@
-package edu.aitu.oop3.repositories;
+package edu.aitu.oop3.repositories.interfaces;
 
 import edu.aitu.oop3.entities.User;
 import java.util.List;
 
 public interface IUserRepository {
-    boolean create(User user);
-    List<User> findAll();
+    void add(User user);
     User findById(int id);
+    List<User> findAll();
 }

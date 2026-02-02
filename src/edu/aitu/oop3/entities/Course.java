@@ -3,27 +3,38 @@ package edu.aitu.oop3.entities;
 public class Course {
     private int id;
     private String title;
-    private String description;
-    private int instructorId;
+    private boolean isArchived;
 
-    public Course(String title, String description, int instructorId) {
-        this.title = title;
-        this.description = description;
-        this.instructorId = instructorId;
+    public Course() {
     }
 
-    public Course(int id, String title, String description, int instructorId) {
-        this(title, description, instructorId);
+    public Course(int id, String title, boolean isArchived) {
+        this.id = id;
+        this.title = title;
+        this.isArchived = isArchived;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
         this.id = id;
     }
 
-    public int getId() { return id; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
-    public int getInstructorId() { return instructorId; }
+    public String getTitle() {
+        return title;
+    }
 
-    @Override
-    public String toString() {
-        return String.format("Course[ID: %d, Title: %s, Instructor ID: %d]", id, title, instructorId);
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public boolean isArchived() {
+        return isArchived;
+    }
+
+    public void setArchived(boolean archived) {
+        isArchived = archived;
     }
 }
