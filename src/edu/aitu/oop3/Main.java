@@ -1,15 +1,21 @@
 package edu.aitu.oop3;
 
+import edu.aitu.oop3.config.PlatformConfig;
 import edu.aitu.oop3.entities.*;
 import edu.aitu.oop3.exceptions.*;
 import edu.aitu.oop3.repositories.*;
 import edu.aitu.oop3.repositories.interfaces.*;
 import edu.aitu.oop3.services.LearningService;
+import edu.aitu.oop3.utils.Page;
+import edu.aitu.oop3.entities.LessonContent;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        PlatformConfig config = PlatformConfig.getInstance();
+
         IUserRepository userRepo = new UserRepository();
         ICourseRepository courseRepo = new CourseRepository();
         ILessonRepository lessonRepo = new LessonRepository();
@@ -18,10 +24,10 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("\n--- ONLINE LEARNING PLATFORM ---");
-            System.out.println("1. Enroll in a Course      | 2. Open a Lesson");
+            System.out.println("\n--- " + config.getPlatformName() + " (v" + config.getVersion() + ") ---");
+            System.out.println("1. Enroll in a Course      | 2. Open a Lesson (Factory Demo)");
             System.out.println("3. Mark Lesson Completed   | 4. View Course Progress");
-            System.out.println("5. List All Courses        | 0. Exit");
+            System.out.println("5. List All Courses (Page) | 0. Exit");
             System.out.print("> ");
 
             String choice = scanner.nextLine();
@@ -37,11 +43,14 @@ public class Main {
                         break;
 
                     case "2":
-                        System.out.print("Enter User ID: ");
-                        int uId2 = Integer.parseInt(scanner.nextLine());
                         System.out.print("Enter Lesson ID to open: ");
                         int lId2 = Integer.parseInt(scanner.nextLine());
-                        learningService.openLesson(uId2, lId2);
+                        System.out.print("What type of lesson is this? (video/text/quiz): ");
+                        String type = scanner.nextLine();
+                        LessonContent content = LessonFactory.createLesson(type);
+
+                        System.out.println("\nOpening Lesson #" + lId2);
+                        System.out.println("Content details: " + content.getDetails());
                         break;
 
                     case "3":
@@ -61,11 +70,11 @@ public class Main {
                         break;
 
                     case "5":
-                        System.out.println("\n--- Available Courses ---");
-                        for (Course c : courseRepo.findAll()) {
-                            String status = c.isArchived() ? "[ARCHIVED]" : "[ACTIVE]";
-                            System.out.println("ID: " + c.getId() + " | " + c.getTitle() + " " + status);
-                        }
+                        List<Course> allCourses = courseRepo.findAll();
+                        Page<Course> coursePage = new Page<>(allCourses, allCourses.size(), 1, 10);
+
+                        System.out.println("\n--- Course Catalog (Paginated) ---");
+                        coursePage.printPageDetails();
                         break;
 
                     case "0":
@@ -77,11 +86,8 @@ public class Main {
                 }
             } catch (NumberFormatException e) {
                 System.out.println("Error: Please enter a valid numeric ID.");
-            } catch (CourseArchivedException | UserNotEnrolledException | LessonNotFoundException e) {
-                System.err.println("Business Logic Error: " + e.getMessage());
             } catch (Exception e) {
-                System.err.println("Unexpected system error occurred.");
-                e.printStackTrace();
+                System.err.println("Error: " + e.getMessage());
             }
         }
     }
