@@ -30,7 +30,11 @@ public class CourseRepository implements ICourseRepository {
             st.setInt(1, id);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
-                return new Course(rs.getInt("id"), rs.getString("title"), rs.getBoolean("is_archived"));
+                return new Course.Builder(rs.getString("title"))
+                        .id(rs.getInt("id"))
+                        .description(rs.getString("description"))
+                        .isArchived(rs.getBoolean("is_archived"))
+                        .build();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -46,7 +50,13 @@ public class CourseRepository implements ICourseRepository {
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                courses.add(new Course(rs.getInt("id"), rs.getString("title"), rs.getBoolean("is_archived")));
+                while (rs.next()) {
+                    Course course = new Course.Builder(rs.getString("title"))
+                            .id(rs.getInt("id"))
+                            .isArchived(rs.getBoolean("is_archived"))
+                            .build();
+                    courses.add(course);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
