@@ -1,8 +1,8 @@
-package edu.aitu.oop3.repositories;
+package edu.aitu.oop3.course.repositories;
 
 import edu.aitu.oop3.db.DatabaseConnection;
-import edu.aitu.oop3.entities.Lesson;
-import edu.aitu.oop3.repositories.interfaces.ILessonRepository;
+import edu.aitu.oop3.course.models.Lesson;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

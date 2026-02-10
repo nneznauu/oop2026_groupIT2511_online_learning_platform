@@ -1,4 +1,4 @@
-package edu.aitu.oop3.entities;
+package edu.aitu.oop3.course.models;
 
 public class QuizLesson implements LessonContent {
     @Override

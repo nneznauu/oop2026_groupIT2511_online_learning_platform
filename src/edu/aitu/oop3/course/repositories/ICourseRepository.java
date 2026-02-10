@@ -1,6 +1,6 @@
-package edu.aitu.oop3.repositories.interfaces;
+package edu.aitu.oop3.course.repositories;
 
-import edu.aitu.oop3.entities.Course;
+import edu.aitu.oop3.course.models.Course;
 import java.util.List;
 
 public interface ICourseRepository {
