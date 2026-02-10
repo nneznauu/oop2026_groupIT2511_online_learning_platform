@@ -9,9 +9,9 @@ public class LessonFactory {
         }
 
         return switch (type.toLowerCase()) {
-            case "video" -> (LessonContent) () -> "[Video Lesson] Title: " + title;
-            case "text"  -> (LessonContent) () -> "[Text Article] Title: " + title;
-            case "quiz"  -> (LessonContent) () -> "[Quiz] Title: " + title;
+            case "video" -> (LessonContent) () -> "🎥 [Video Lesson] Title: " + title;
+            case "text"  -> (LessonContent) () -> "📖 [Text Article] Title: " + title;
+            case "quiz"  -> (LessonContent) () -> "📝 [Quiz] Title: " + title;
             default -> throw new IllegalArgumentException("Unknown lesson type: " + type);
         };
     }

@@ -9,8 +9,8 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:postgresql://aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require";
-    private static final String USER = "postgres.mrivkaqomaorywhzsntk";
+    private static final String URL = "jdbc:postgresql://db.ziwbermxpihvosbcdecm.supabase.co:5432/postgres";
+    private static final String USER = "postgres";
     private static final String PASSWORD = loadPassword();
 
     private static String loadPassword() {
@@ -24,14 +24,18 @@ public class DatabaseConnection {
             }
             return value;
         } catch (IOException e) {
-            throw new RuntimeException("Cannot load DB_PASSWORD from config.properties. " +
-                    "Make sure the file exists in the project root.", e);
+            throw new RuntimeException("Cannot load config.properties. Check if file exists!", e);
         }
     }
 
     private DatabaseConnection() { }
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        try {
+            Class.forName("org.postgresql.Driver");
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("PostgreSQL Driver not found", e);
+        }
     }
 }

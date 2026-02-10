@@ -1,6 +1,6 @@
-package edu.aitu.oop3.repositories.interfaces;
+package edu.aitu.oop3.user.repositories;
 
-import edu.aitu.oop3.entities.User;
+import edu.aitu.oop3.user.models.User;
 import java.util.List;
 
 public interface IUserRepository {
