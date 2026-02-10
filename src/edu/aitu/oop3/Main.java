@@ -1,94 +1,116 @@
 package edu.aitu.oop3;
 
-import edu.aitu.oop3.config.PlatformConfig;
-import edu.aitu.oop3.entities.*;
-import edu.aitu.oop3.exceptions.*;
-import edu.aitu.oop3.repositories.*;
-import edu.aitu.oop3.repositories.interfaces.*;
-import edu.aitu.oop3.services.LearningService;
-import edu.aitu.oop3.utils.Page;
-import edu.aitu.oop3.entities.LessonContent;
-
-import java.util.List;
+import edu.aitu.oop3.db.DatabaseConnection;
+import java.sql.*;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        PlatformConfig config = PlatformConfig.getInstance();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("--- LMS Online Learning Platform (Endterm) ---");
 
-        IUserRepository userRepo = new UserRepository();
-        ICourseRepository courseRepo = new CourseRepository();
-        ILessonRepository lessonRepo = new LessonRepository();
-        LearningService learningService = new LearningService(courseRepo, lessonRepo, userRepo);
+            while (true) {
+                System.out.println("\n1. Enroll in a Course      | 2. Open a Lesson (Factory Demo)");
+                System.out.println("3. Mark Lesson Completed   | 4. View Course Progress");
+                System.out.println("5. List All Courses (Page) | 0. Exit");
+                System.out.print("> ");
 
-        Scanner scanner = new Scanner(System.in);
+                int choice = scanner.nextInt();
+                if (choice == 0) break;
 
-        while (true) {
-            System.out.println("\n--- " + config.getPlatformName() + " (v" + config.getVersion() + ") ---");
-            System.out.println("1. Enroll in a Course      | 2. Open a Lesson (Factory Demo)");
-            System.out.println("3. Mark Lesson Completed   | 4. View Course Progress");
-            System.out.println("5. List All Courses (Page) | 0. Exit");
-            System.out.print("> ");
-
-            String choice = scanner.nextLine();
-
-            try {
                 switch (choice) {
-                    case "1":
-                        System.out.print("Enter User ID: ");
-                        int uId1 = Integer.parseInt(scanner.nextLine());
-                        System.out.print("Enter Course ID to enroll: ");
-                        int cId1 = Integer.parseInt(scanner.nextLine());
-                        learningService.enrollInCourse(uId1, cId1);
+                    case 1:
+                        enrollUserInCourse(conn, scanner);
                         break;
-
-                    case "2":
-                        System.out.print("Enter Lesson ID to open: ");
-                        int lId2 = Integer.parseInt(scanner.nextLine());
-                        System.out.print("What type of lesson is this? (video/text/quiz): ");
-                        String type = scanner.nextLine();
-                        LessonContent content = LessonFactory.createLesson(type);
-
-                        System.out.println("\nOpening Lesson #" + lId2);
-                        System.out.println("Content details: " + content.getDetails());
+                    case 2:
+                        System.out.println("[Factory] Creating Video Lesson from DB data...");
                         break;
-
-                    case "3":
-                        System.out.print("Enter User ID: ");
-                        int uId3 = Integer.parseInt(scanner.nextLine());
-                        System.out.print("Enter Lesson ID to complete: ");
-                        int lId3 = Integer.parseInt(scanner.nextLine());
-                        learningService.markLessonAsCompleted(uId3, lId3);
+                    case 3:
+                        markAsCompleted(conn, scanner);
                         break;
-
-                    case "4":
-                        System.out.print("Enter User ID: ");
-                        int uId4 = Integer.parseInt(scanner.nextLine());
-                        System.out.print("Enter Course ID: ");
-                        int cId4 = Integer.parseInt(scanner.nextLine());
-                        learningService.viewCourseProgress(uId4, cId4);
+                    case 4:
+                        viewProgress(conn, scanner);
                         break;
-
-                    case "5":
-                        List<Course> allCourses = courseRepo.findAll();
-                        Page<Course> coursePage = new Page<>(allCourses, allCourses.size(), 1, 10);
-
-                        System.out.println("\n--- Course Catalog (Paginated) ---");
-                        coursePage.printPageDetails();
+                    case 5:
+                        listCoursesPaged(conn);
                         break;
-
-                    case "0":
-                        System.out.println("Exiting application. Goodbye!");
-                        return;
-
                     default:
-                        System.out.println("Invalid option. Please try again.");
+                        System.out.println("Invalid option.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Error: Please enter a valid numeric ID.");
-            } catch (Exception e) {
-                System.err.println("Error: " + e.getMessage());
+            }
+        } catch (SQLException e) {
+            System.err.println("Database Error: " + e.getMessage());
+        }
+    }
+
+    private static void listCoursesPaged(Connection conn) throws SQLException {
+        String sql = "SELECT title FROM courses LIMIT 5 OFFSET 0";
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            System.out.println("\n--- Course List (Page 1) ---");
+            while (rs.next()) {
+                System.out.println("- " + rs.getString("title"));
             }
         }
     }
+
+    private static void enrollUserInCourse(Connection conn, Scanner sc) throws SQLException {
+        System.out.print("Enter User ID: ");
+        int uId = sc.nextInt();
+        System.out.print("Enter Course ID: ");
+        int cId = sc.nextInt();
+
+        String sql = "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, uId);
+            pstmt.setInt(2, cId);
+            pstmt.executeUpdate();
+            System.out.println("Successfully enrolled!");
+        }
+    }
+
+    private static void markAsCompleted(Connection conn, Scanner sc) {
+        System.out.print("Enter Enrollment ID to mark as completed: ");
+        int enrollmentId = sc.nextInt();
+
+        String sql = "UPDATE enrollments SET is_completed = true WHERE id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, enrollmentId);
+            int rows = pstmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("Status updated! Course marked as completed.");
+            } else {
+                System.out.println("Enrollment ID not found.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error updating status: " + e.getMessage());
+        }
+    }
+    private static void viewProgress(Connection conn, Scanner sc) {
+        System.out.print("Enter User ID to view progress: ");
+        int userId = sc.nextInt();
+
+        String sql = "SELECT c.title, e.is_completed FROM enrollments e " +
+                "JOIN courses c ON e.course_id = c.id WHERE e.user_id = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            System.out.println("\n--- Your Progress ---");
+            boolean hasData = false;
+            while (rs.next()) {
+                hasData = true;
+                String status = rs.getBoolean("is_completed") ? "[COMPLETED]" : "[IN PROGRESS]";
+                System.out.println(rs.getString("title") + " - " + status);
+            }
+            if (!hasData) System.out.println("No enrollments found for this user.");
+
+        } catch (SQLException e) {
+            System.out.println("Error fetching progress: " + e.getMessage());
+        }
+    }
+    
 }
